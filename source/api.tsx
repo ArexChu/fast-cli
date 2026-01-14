@@ -1,5 +1,5 @@
 import {isDeepStrictEqual} from 'node:util';
-import {launch, type Page} from 'puppeteer';
+import {launch, type Page} from 'puppeteer-core';
 import {delay} from 'unicorn-magic';
 import {type SpeedData, type SpeedUnit} from './types.js';
 
@@ -48,6 +48,7 @@ async function * monitorSpeed(page: Page, options?: Options): AsyncGenerator<Spe
 
 export default async function * api(options?: Options): AsyncGenerator<SpeedData, void, undefined> {
 	const browser = await launch({
+	        executablePath: '/usr/bin/chromium-headless-shell',
 		args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
 		headless: true,
 	});
