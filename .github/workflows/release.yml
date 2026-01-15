@@ -26,6 +26,7 @@ jobs:
       - name: Build arm64 binary
         run: |
           npm install -g pkg
+          npx pkg-fetch v20.9.0
           pkg . --targets node20-linux-arm64 --output fast-cli
 
       - name: Test binary
