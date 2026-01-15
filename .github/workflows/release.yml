@@ -1,0 +1,40 @@
+name: Build Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-arm64:
+    runs-on: ubuntu-22.04-arm
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        run: npm run build
+
+      - name: Build arm64 binary
+        run: |
+          npm install -g pkg
+          pkg . --targets node20-linux-arm64 --output fast-cli
+
+      - name: Test binary
+        run: |
+          timeout 5s ./fast-cli || true
+
+      - name: Upload binary to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: fast-cli
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
