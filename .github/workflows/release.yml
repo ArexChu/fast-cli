@@ -8,31 +8,44 @@ on:
 jobs:
   build-arm64:
     runs-on: ubuntu-22.04-arm
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
 
-      - name: Setup Node.js
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install dependencies
+      - name: Install deps
         run: npm install
 
       - name: Build project
         run: npm run build
 
-      - name: Build arm64 binary
+      - name: Build SEA blob
         run: |
-          npm install -g pkg
-          pkg . --targets node18-linux-arm64 --output fast-cli
+          cat > sea-config.json <<'EOF'
+          {
+            "main": "./distribution/cli.js",
+            "output": "fast-cli.blob",
+            "disableExperimentalSEAWarning": true
+          }
+          EOF
+          node --experimental-sea-config sea-config.json
 
-      - name: Test binary
+      - name: Build single binary
         run: |
-          timeout 5s ./fast-cli || true
+          cp "$(command -v node)" fast-cli
+          npx postject fast-cli NODE_SEA_BLOB fast-cli.blob \
+            --sentinel-fuse NODE_SEA_FUSE
+          chmod +x fast-cli
 
-      - name: Upload binary to Release
+      - name: Smoke test
+        run: |
+          timeout 5s ./fast-cli --help || true
+
+      - name: Upload Release
         uses: softprops/action-gh-release@v2
         with:
           files: fast-cli
